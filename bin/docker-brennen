@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+stopped_containers=$(docker ps -qa --no-trunc --filter "status=exited")
+[[ -n "${stopped_containers}" ]] && docker rm ${stopped_containers} 2>/dev/null
+
+dangling_images=$(docker images --filter "dangling=true" -q --no-trunc)
+[[ -n "${dangling_images}" ]] && docker rmi ${dangling_images} 2>/dev/null
+
+no_tag_images=$(docker images | grep "none" | awk '/ / { print $3 }')
+[[ -n "${no_tag_images}" ]] && docker rmi ${no_tag_images} 2>/dev/null
+
+bridge_networks=$(docker network ls | grep "bridge" | awk '/ / { print $1 }')
+[[ -n "${bridge_networks}" ]] && docker network rm ${bridge_networks} 2>/dev/null
+
+dangling_volumes=$(docker volume ls -qf dangling=true)
+[[ -n "${dangling_volumes}" ]] && docker volume rm ${dangling_volumes} 2>/dev/null
